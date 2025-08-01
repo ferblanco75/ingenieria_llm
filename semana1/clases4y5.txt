@@ -1,0 +1,205 @@
+Apuntes clases 4 y 5
+
+
+DIFERENCIA ENTRE USER_PROMPT Y SYSTEM_PROMPT
+
+Te explico la diferencia entre system_prompt y user_prompt en la API de OpenAI:
+System Prompt
+El system prompt es como las "instrucciones permanentes" o el "manual de comportamiento" para el modelo de IA. Define:
+
+Rol y personalidad: Qué tipo de asistente debe ser
+Reglas de comportamiento: Cómo debe actuar y responder
+Formato de salida: Estructura específica que debe seguir
+Contexto general: Información que debe recordar durante toda la conversación
+
+En tu ejemplo, el link_system_prompt le dice al modelo:
+
+Su tarea (analizar enlaces para un folleto)
+Qué tipos de enlaces buscar (Acerca de, empresa, carreras, cursos)
+Exactamente cómo formatear la respuesta (JSON con estructura específica)
+
+User Prompt
+El user prompt es el mensaje específico del usuario en cada interacción. Contiene:
+
+Datos concretos: La información específica a procesar
+Pregunta o solicitud: Lo que el usuario quiere que haga ahora
+Contexto específico: Detalles particulares de esta consulta
+
+Por ejemplo, para tu caso sería algo como:
+
+
+
+"Aquí tienes los enlaces de la página web de TechCorp:
+- https://techcorp.com/about-us
+- https://techcorp.com/contact
+- https://techcorp.com/courses/python
+- https://techcorp.com/blog/latest-news
+- https://techcorp.com/careers
+
+Analiza estos enlaces y selecciona los más relevantes para el folleto."
+
+¿Por qué separarlos?
+
+Consistencia: El system prompt mantiene el comportamiento uniforme
+Reutilización: Puedes usar el mismo system prompt con diferentes user prompts
+Claridad: Separa las "reglas del juego" de los "datos a procesar"
+Eficiencia: El modelo entiende mejor su rol vs. la tarea específica
+
+
+
+
+
+
+
+
+SEMANA 1 - DIa 4
+----------------------------------------------------------------
+2018 lanzamiento gpt 1
+Como reacciona el mundo??  primero sorpresa, despues escepticismo
+Luego  la inteligencia Emergente
+
+La palabra token es clave
+dado los patrones que ha aprendido y lo que ha absorvido . dice : cual es el token mas probable ?? A escala masiva. con  millones de parámetros
+
+
+EN el inicio las redes neuronales se entrenaban a nivel caracter
+
+Luego se empiezan a entrenar con palabras Predice la siguiente palabra de la secuencia. conlleva grandes vocabularios. omite palabras raras
+
+El avance  fue trabajar con trozos de palabras (tokens). Un termino medio. Vocabulario manejable, 
+en OPENAI 
+
+en platform.openai.com/tokenizer 
+
+transforma palabras en tokens. si es una palabra sola- le asigna un token
+
+reglas (para el ingles): 1 token es aprox 4 caracteres
+			1 token es aprox 0.75 de una palabra
+			1000 tokens es aprox 750 palabras
+			
+			
+LA VENTANA DE CONTEXTO: nos indica la cantidad total de un LLM puede examinar para generar el siguiente token
+
+Está limitada por la cantidad de parámetros que está construido el LLM y como está construido el LLM
+En la practica pareceria que chatgpt tiene memoria de lo que venis charlando, como un truco de magia. Parece que mantiene el contexto, No funciona asi
+Cada vez que el usuario pregunta, se vuelven a pasar las preguntas anteriores a chatgpt y se vuelven a sumar las respuestas. Por eso la respuesta es cada vez mas larga
+La ventana de contexto, es la cantidad de tokens. conteniendo las preguntas anteriores, la conversacion anterior.
+Se ajusta cada vez mas porque necesita saber lo que le han dicho anteriormente
+
+Las apis no tienen suscripcion mensual, lo que pagas es por cada llamada. 
+El coste se basa en la cantidad de tokens de entrada y salida (muy bajo costo). Si el sistema usa una gran cantidad de llamadas, el proyecto y los costos van a escalar
+
+
+
+LA IA VELLUM :
+ahi se comparan las principales IA con los tokens, las ventanas de contexto, costo por input
+
+
+
+
+
+
+SEMANA 1 DIA 5
+---------------------------------------------------------------------------------
+Vamos a desarrollar un tutor personalizado
+laboratorio final de trabajo
+
+vamos a trabajar con la openAI, y vammos a buscar implementar una solucion comerccial para hacer un folleto de marketing sobre una empresa .
+Es parecido al proyecto de resumen. One SHOT prompting, es que las indicaciones que le damos al modelo , es porque le damos un ejemplo de lo que esperamos del modelo.
+los pasos :
+
+1- clonar el repo
+2- armar el entorno de anaconda y ejecutar jupyterlab
+3. usar la clave de OPENAI
+
+
+De todas las urls del sitio que le paso, hay que elegir las urls relevantes. 
+Le pasamos esa tarea a chatgpt, se lo mandamos a un modelo fronterizo (chatgpt4.0-mini). QUiero que me diga que links son relevantes, en formato JSON
+
+en el mensaje de sistema (link_system_prompt) describo la tarea en cuestion
+
+despues de eso hace una funcion 
+def get_links_user_prompt(website): 
+	user_prompt= "por favor decide cuales de estos links son relevantes para uin folleto sobre la empresa"
+	user_prompt= "puede que algunos sean links relativos"
+
+
+
+
+Luego de iniciar jupyterlab, vamos a trabajar con las apis de los LLMs.
+Vamos a desarrollar una desafio comercial, es para crear un folleto mediante scrapping de la pagina web
+
+
+
+crear el folleto: 
+
+1- la idea es tomar una url y de esa url , recopilar info de esa url
+
+
+def get_all_details(url):
+    result = "Landing page:\n"
+    result += Website(url).get_contents()
+    links = get_links(url)                          //aca nos da los links disponibles para los enlaces . llamamos a un modelo frontera que nos diga cuales sonlos relevantes
+    print("Links encontrados:", links)
+    for link in links["links"]:
+        result += f"\n\n{link['type']}\n"
+        result += Website(link["url"]).get_contents()  //para cada uno de esos enlaces mas relevantes, tendremos otro sitio web y creamos añadiendo como texto el resultado
+    return result
+    
+    
+esta funcion es importante .cada uno de esos enlaces relevantes. 
+crea un objeto que diga : 'landing page: ...contenido de la web'
+con get_links nosda los links mas relevantes.
+Para cada uno de de esos links , va a crear un objeto sitio web (uno nuevo). Este sitio nuevo, va a tener una pagina web como link interno. 
+Cada uuno de esos enlaces relevantes, van a estar en el objeto relevante 'result'
+Primero se abre la lista de las urls a explorar, para luego escrapear cada una de estas para armar un sitio nuevo. 
+COn toda esta informacion, vamos a hacer una segunda llamada a la api de openAI. 
+esta 2da llamada va a sintetizar la información. 
+
+
+2- 2da llamada:
+
+system_prompt = "Eres un asistente que analiza el contenido de varias páginas relevantes del sitio web de una empresa\
+y crea un folleto breve sobre la empresa para posibles clientes, inversores y nuevos empleados. Responde en formato Markdown.\
+Incluye detalles sobre la cultura de la empresa, los clientes, las carreras/empleos y los cursos/packs para futuros empleos si tienes la información."
+
+
+desde este prompt de usuario . 
+
+
+
+
+
+3- arma un nuevo system_prompt para armar el brochure
+
+system_prompt = "Eres un asistente que analiza el contenido de varias páginas relevantes del sitio web de una empresa\
+    y crea un folleto breve sobre la empresa para posibles clientes, inversores y nuevos empleados. Responde en formato Markdown.\
+    Incluye detalles sobre la cultura de la empresa, los clientes, las carreras/empleos y los cursos/packs para futuros empleos si tienes la información."444
+    
+    
+    Con este system_prompt arma un get_brochure que recibe el user_prompt 
+    
+ def get_brochure_user_prompt(company_name, url):
+    user_prompt = f"Estás mirando una empresa llamada: {company_name}\n"
+    user_prompt += f"Aquí se encuentra el contenido de su página de inicio y otras páginas relevantes; usa esta información para crear un breve folleto de la empresa en Markdown.\n"
+    user_prompt += get_all_details(url)
+    user_prompt = user_prompt[:20_000] # Truncar si tiene más de 20.000 caracteres
+    return user_prompt
+
+con este get_brochure arma el folleto final, asi:
+
+def create_brochure(company_name, url):
+    response = openai.chat.completions.create(
+        model=MODEL,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": get_brochure_user_prompt(company_name, url)}
+          ],
+    )
+    result = response.choices[0].message.content
+    display(Markdown(result))
+    
+    
+    Luego de armar el brochure 
+
+
